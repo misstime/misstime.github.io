@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="scrapy,scrapy 源码,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="可执行文件 - scrapy我们在terminal中输入“scrapy xxx”命令后，发生了什么？ 查看 scrapy 命令位置： 12# whereis scrapyscrapy: /root/anaconda3/bin/scrapy">
+<meta name="keywords" content="scrapy,scrapy 源码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="scrapy源码分析（一）命令入口">
+<meta property="og:url" content="http://yoursite.com/2019/04/04/scrapy源码分析（一）命令入口/index.html">
+<meta property="og:site_name" content="Misstime">
+<meta property="og:description" content="可执行文件 - scrapy我们在terminal中输入“scrapy xxx”命令后，发生了什么？ 查看 scrapy 命令位置： 12# whereis scrapyscrapy: /root/anaconda3/bin/scrapy">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-04-05T06:42:14.979Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="scrapy源码分析（一）命令入口">
+<meta name="twitter:description" content="可执行文件 - scrapy我们在terminal中输入“scrapy xxx”命令后，发生了什么？ 查看 scrapy 命令位置： 12# whereis scrapyscrapy: /root/anaconda3/bin/scrapy">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/04/04/scrapy源码分析（一）命令入口/">
+
+
+
+
+
+  <title>scrapy源码分析（一）命令入口 | Misstime</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Misstime</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-首页">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-分类">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-标签">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-归档">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/04/scrapy源码分析（一）命令入口/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Stephen">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Misstime">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">scrapy源码分析（一）命令入口</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-04T09:00:23+08:00">
+                2019-04-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/scrapy-源码/" itemprop="url" rel="index">
+                    <span itemprop="name">scrapy 源码</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="可执行文件-scrapy"><a href="#可执行文件-scrapy" class="headerlink" title="可执行文件 - scrapy"></a>可执行文件 - scrapy</h2><p>我们在terminal中输入“scrapy xxx”命令后，发生了什么？</p>
+<p>查看 scrapy 命令位置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># whereis scrapy</span><br><span class="line">scrapy: /root/anaconda3/bin/scrapy</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<p>vim 查看/root/anaconda3/bin/scrapy，发现是 python 文件：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/root/anaconda3/bin/python</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> scrapy.cmdline <span class="keyword">import</span> execute</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    sys.argv[<span class="number">0</span>] = re.sub(<span class="string">r'(-script\.pyw?|\.exe)?$'</span>, <span class="string">''</span>, sys.argv[<span class="number">0</span>])</span><br><span class="line">    sys.exit(execute())</span><br><span class="line">    <span class="comment"># 去除第一个参数（scrapy文件本身路径）中指定格式的结尾字符</span></span><br><span class="line">    <span class="comment"># 执行 execute() 方法</span></span><br></pre></td></tr></table></figure>
+<p>即执行：<code>scrapy.cmdline.py - execute()</code></p>
+<p>实际上，在linux中使用Python编写一个可执行文件很简单：</p>
+<ul>
+<li>编写Python模块（首行必须注明python执行路径）</li>
+<li><code>xxx.py</code>去掉<code>.py</code>，并确保当前用户拥有可执行权限</li>
+<li>文件路径加入PATH环境变量即可全局执行</li>
+</ul>
+<h2 id="execute-cmdline-py"><a href="#execute-cmdline-py" class="headerlink" title="execute() - cmdline.py"></a>execute() - cmdline.py</h2><p>可执行文件-scrapy最终调用<code>execute() - scrapy/cmdline.py</code>：</p>
+<figure class="highlight python"><figcaption><span>execute()</span><a href="https://github.com/scrapy/scrapy/blob/master/scrapy/cmdline.py" target="_blank" rel="noopener">scrapy.cmdline.py</a></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">execute</span><span class="params">(argv=None, settings=None)</span>:</span>  <span class="comment"># 默认没有argv、settings传入</span></span><br><span class="line">    <span class="keyword">if</span> argv <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        argv = sys.argv     <span class="comment"># 获取terminal中命令的argv参数</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># --- 省略兼容代码 ---</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> settings <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        settings = get_project_settings()   <span class="comment"># 获取配置</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># --- 省略部分代码 ---</span></span><br><span class="line">    <span class="comment"># --- 省略兼容代码 ---</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 执行环境是否在项目中</span></span><br><span class="line">    inproject = inside_project()</span><br><span class="line">    <span class="comment"># 读取commands文件夹，把所有的命令类转换为&#123;cmd_name: cmd_instance&#125;的字典</span></span><br><span class="line">    cmds = _get_commands_dict(settings, inproject)</span><br><span class="line">    <span class="comment"># 从命令行解析出执行的是哪个命令</span></span><br><span class="line">    cmdname = _pop_command_name(argv)</span><br><span class="line">    parser = optparse.OptionParser(formatter=optparse.TitledHelpFormatter(), \</span><br><span class="line">        conflict_handler=<span class="string">'resolve'</span>)</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> cmdname:</span><br><span class="line">        _print_commands(settings, inproject)</span><br><span class="line">        sys.exit(<span class="number">0</span>)</span><br><span class="line">    <span class="keyword">elif</span> cmdname <span class="keyword">not</span> <span class="keyword">in</span> cmds:</span><br><span class="line">        _print_unknown_command(settings, cmdname, inproject)</span><br><span class="line">        sys.exit(<span class="number">2</span>)</span><br><span class="line">    <span class="comment"># 根据命令名称找到对应的命令实例</span></span><br><span class="line">    cmd = cmds[cmdname]</span><br><span class="line">    parser.usage = <span class="string">"scrapy %s %s"</span> % (cmdname, cmd.syntax())</span><br><span class="line">    parser.description = cmd.long_desc()</span><br><span class="line">    <span class="comment"># 设置项目配置和级别为command</span></span><br><span class="line">    settings.setdict(cmd.default_settings, priority=<span class="string">'command'</span>)</span><br><span class="line">    cmd.settings = settings</span><br><span class="line">    <span class="comment"># 添加解析规则</span></span><br><span class="line">    cmd.add_options(parser)</span><br><span class="line">    <span class="comment"># 解析命令参数，并交由Scrapy命令实例处理</span></span><br><span class="line">    opts, args = parser.parse_args(args=argv[<span class="number">1</span>:])</span><br><span class="line">    _run_print_help(parser, cmd.process_options, args, opts)</span><br><span class="line">    <span class="comment"># 初始化CrawlerProcess实例，并给命令实例添加crawler_process属性</span></span><br><span class="line">    cmd.crawler_process = CrawlerProcess(settings)</span><br><span class="line">    <span class="comment"># 执行命令实例的run方法</span></span><br><span class="line">    _run_print_help(parser, _run_command, cmd, args, opts)</span><br><span class="line">    sys.exit(cmd.exitcode)</span><br></pre></td></tr></table></figure>
+<p>流程概览：</p>
+<ul>
+<li>获取配置（默认+项目）<ul>
+<li>初始化环境<br>  1、设置环境变量’SCRAPY_SETTINGS_MODULE’<br>  2、将项目目录添加进系统PATH（如果在项目中）</li>
+<li>返回配置（默认+项目）</li>
+</ul>
+</li>
+<li>初始化命令对象，解析命令参数<ul>
+<li>将所有命令组装为{cmd_name: cmd_instance}的字典</li>
+<li>根据terminal命令参数找到对应的命令实例</li>
+<li>设置terminal命令中的参数到配置中</li>
+<li>通过配置Settings对象实例化CrawlerProcess，并内附给cmd命令实例</li>
+</ul>
+</li>
+<li>执行命令<ul>
+<li>执行：<code>命令实例.run()</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="获取配置"><a href="#获取配置" class="headerlink" title="获取配置"></a>获取配置</h2><p><code>get_project_settings() - scrapy.utils.project.py</code></p>
+<p>主要做了两个工作：</p>
+<ul>
+<li>初始化环境：<br>  1、设置环境变量’SCRAPY_SETTINGS_MODULE’<br>  2、将项目目录添加进系统PATH（如果在项目中）</li>
+<li>返回配置（一个Settings对象，包含：scrapy默认配置+项目配置（如果在项目中））</li>
+</ul>
+<figure class="highlight python"><figcaption><span>get_project_settings()</span><a href="https://github.com/scrapy/scrapy/blob/master/scrapy/utils/project.py" target="_blank" rel="noopener">scrapy.utils.project.py</a></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_project_settings</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">if</span> ENVVAR <span class="keyword">not</span> <span class="keyword">in</span> os.environ:</span><br><span class="line">        project = os.environ.get(<span class="string">'SCRAPY_PROJECT'</span>, <span class="string">'default'</span>)</span><br><span class="line">        init_env(project)</span><br><span class="line"></span><br><span class="line">    settings = Settings()</span><br><span class="line">    settings_module_path = os.environ.get(ENVVAR)</span><br><span class="line">    <span class="keyword">if</span> settings_module_path:</span><br><span class="line">        settings.setmodule(settings_module_path, priority=<span class="string">'project'</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># ... 省略部分兼容代码 ...</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> settings</span><br></pre></td></tr></table></figure>
+<p>代码流：</p>
+<ul>
+<li>初始化环境<ul>
+<li>检查’SCRAPY_SETTINGS_MODULE’是否在环境变量中，如果不存在（默认）：</li>
+<li>尝试获取环境变量’xxx’值，默认不存在返回默认值：’default’</li>
+<li>初始化环境，执行：init_env(‘default’)</li>
+</ul>
+</li>
+<li>初始化Settings对象<ul>
+<li>初始化过程中会导入scrapy默认配置：scrapy.settings.default_settings.py</li>
+</ul>
+</li>
+<li>导入本地项目配置<ul>
+<li>读取环境变量：’SCRAPY_SETTINGS_MODULE’，如果存在则导入该配置模块（就是我们项目中的settings.py）</li>
+</ul>
+</li>
+</ul>
+<h4 id="初始化环境"><a href="#初始化环境" class="headerlink" title="初始化环境"></a>初始化环境</h4><p><code>init_env() - scrapy.utils.conf.py</code></p>
+<p>代码流：</p>
+<ul>
+<li>返回配置文件地址集</li>
+<li>通过读取配置文件地址集，返回一个SafeConfigParser的配置对象。相同配置会从后向前覆盖</li>
+<li>初始化环境：<br>  1、设置环境变量’SCRAPY_SETTINGS_MODULE’<br>  2、将项目目录添加进系统PATH（如果在项目中）</li>
+</ul>
+<figure class="highlight python"><figcaption><span>init_env()</span><a href="https://github.com/scrapy/scrapy/blob/master/scrapy/utils/conf.py" target="_blank" rel="noopener">scrapy.utils.conf.py</a></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">closest_scrapy_cfg</span><span class="params">(path=<span class="string">'.'</span>, prevpath=None)</span>:</span></span><br><span class="line">    <span class="string">"""从当前目录往上递归的查找scrapy.cfg文件并返回路径"""</span></span><br><span class="line">    <span class="keyword">if</span> path == prevpath:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">''</span></span><br><span class="line">    path = os.path.abspath(path)</span><br><span class="line">    cfgfile = os.path.join(path, <span class="string">'scrapy.cfg'</span>)</span><br><span class="line">    <span class="keyword">if</span> os.path.exists(cfgfile):</span><br><span class="line">        <span class="keyword">return</span> cfgfile</span><br><span class="line">    <span class="keyword">return</span> closest_scrapy_cfg(os.path.dirname(path), path)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">init_env</span><span class="params">(project=<span class="string">'default'</span>, set_syspath=True)</span>:</span></span><br><span class="line">    <span class="string">"""初始化环境：</span></span><br><span class="line"><span class="string">    1、设置环境变量'SCRAPY_SETTINGS_MODULE'</span></span><br><span class="line"><span class="string">    2、将项目目录添加进系统PATH（如果在项目中）</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    cfg = get_config()</span><br><span class="line">    <span class="keyword">if</span> cfg.has_option(<span class="string">'settings'</span>, project):</span><br><span class="line">        os.environ[<span class="string">'SCRAPY_SETTINGS_MODULE'</span>] = cfg.get(<span class="string">'settings'</span>, project)</span><br><span class="line">    closest = closest_scrapy_cfg()</span><br><span class="line">    <span class="keyword">if</span> closest:</span><br><span class="line">        projdir = os.path.dirname(closest)</span><br><span class="line">        <span class="keyword">if</span> set_syspath <span class="keyword">and</span> projdir <span class="keyword">not</span> <span class="keyword">in</span> sys.path:</span><br><span class="line">            sys.path.append(projdir)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_config</span><span class="params">(use_closest=True)</span>:</span></span><br><span class="line">    <span class="string">"""读取配置文件地址集，返回一个SafeConfigParser，相同配置会从后向前覆盖"""</span></span><br><span class="line">    sources = get_sources(use_closest)</span><br><span class="line">    cfg = SafeConfigParser()</span><br><span class="line">    cfg.read(sources)</span><br><span class="line">    <span class="keyword">return</span> cfg</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_sources</span><span class="params">(use_closest=True)</span>:</span></span><br><span class="line">    <span class="string">'''返回一个列表：</span></span><br><span class="line"><span class="string">    内含所有scrapy配置文件可能存在的位置，列表内元素位置越靠后配置越接近项目</span></span><br><span class="line"><span class="string">    例（`~`号替换家目录位置）：</span></span><br><span class="line"><span class="string">    ['/etc/scrapy.cfg', r'c:\scrapy\scrapy.cfg','～/.config/scrapy.cfg',</span></span><br><span class="line"><span class="string">    '~/.scrapy.cfg']</span></span><br><span class="line"><span class="string">    '''</span></span><br><span class="line">    xdg_config_home = os.environ.get(<span class="string">'XDG_CONFIG_HOME'</span>) <span class="keyword">or</span> \</span><br><span class="line">        os.path.expanduser(<span class="string">'~/.config'</span>)</span><br><span class="line">    sources = [<span class="string">'/etc/scrapy.cfg'</span>, <span class="string">r'c:\scrapy\scrapy.cfg'</span>,</span><br><span class="line">            xdg_config_home + <span class="string">'/scrapy.cfg'</span>,</span><br><span class="line">            os.path.expanduser(<span class="string">'~/.scrapy.cfg'</span>)]</span><br><span class="line">    <span class="keyword">if</span> use_closest:</span><br><span class="line">        sources.append(closest_scrapy_cfg())</span><br><span class="line">    <span class="keyword">return</span> sources</span><br></pre></td></tr></table></figure>
+<h4 id="Settings对象"><a href="#Settings对象" class="headerlink" title="Settings对象"></a>Settings对象</h4><p><code>scrapy.settings</code></p>
+<p>scrapy通过scrapy.settings包管理Settings对象。</p>
+<p>目录结构如下：</p>
+<ul>
+<li>__init__.py <ul>
+<li>BaseSettings类 – 基类</li>
+<li>Settings类</li>
+<li>SETTINGS_PRIORITIES 变量</li>
+</ul>
+</li>
+<li>default_settings.py – 包含所有的scrapy默认配置，在Settings实例化时导入</li>
+<li>deprecated.py – 检查废弃的配置项并发出警告</li>
+</ul>
+<p>BaseSettings为每个配置设置优先级，当多次set一个key时，value中只保存优先级最大的一个。<br>优先级配置如下（<a href="https://scrapy-chs.readthedocs.io/zh_CN/stable/topics/settings.html#populating-the-settings" target="_blank" rel="noopener">settings优先级</a>）：</p>
+<figure class="highlight python"><figcaption><span>SETTINGS_PRIORITIES</span><a href="https://github.com/scrapy/scrapy/blob/master/scrapy/settings/__init__.py" target="_blank" rel="noopener">scrapy.settings.__init__.py</a></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">SETTINGS_PRIORITIES = &#123;</span><br><span class="line">    <span class="string">'default'</span>: <span class="number">0</span>,</span><br><span class="line">    <span class="string">'command'</span>: <span class="number">10</span>,</span><br><span class="line">    <span class="string">'project'</span>: <span class="number">20</span>,</span><br><span class="line">    <span class="string">'spider'</span>: <span class="number">30</span>,</span><br><span class="line">    <span class="string">'cmdline'</span>: <span class="number">40</span>,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Settings对象用法形如dict，拥有get、getbool、getint、getlist、getdict等方法。<br>提供frozen变量、freeze方法对修改操作进行锁定，被锁定的对象进行修改的话会抛出异常。</p>
+<h2 id="获取配置-1"><a href="#获取配置-1" class="headerlink" title="获取配置"></a>获取配置</h2><p>通过<code>命令实例.run()</code>执行相应命令。</p>
+<p>以<code>crawl</code>命令为例，最终会执行CrawlerProcess实例的crawl和start方法。</p>
+<p>CrawlerProcess类定义于scrapy.crawler.py模块中</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/scrapy/" rel="tag"># scrapy</a>
+          
+            <a href="/tags/scrapy-源码/" rel="tag"># scrapy 源码</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/03/twisted笔记（六）：DeferredList/" rel="next" title="twisted笔记（六）：DeferredList">
+                <i class="fa fa-chevron-left"></i> twisted笔记（六）：DeferredList
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/04/05/scrapy源码分析（二）crawler-py/" rel="prev" title="scrapy源码分析（二）crawler.py">
+                scrapy源码分析（二）crawler.py <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Stephen</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/misstime" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:734487946@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#可执行文件-scrapy"><span class="nav-number">1.</span> <span class="nav-text">可执行文件 - scrapy</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#execute-cmdline-py"><span class="nav-number">2.</span> <span class="nav-text">execute() - cmdline.py</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#获取配置"><span class="nav-number">3.</span> <span class="nav-text">获取配置</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#初始化环境"><span class="nav-number">3.0.1.</span> <span class="nav-text">初始化环境</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Settings对象"><span class="nav-number">3.0.2.</span> <span class="nav-text">Settings对象</span></a></li></ol></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#获取配置-1"><span class="nav-number">4.</span> <span class="nav-text">获取配置</span></a></li></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Stephen</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

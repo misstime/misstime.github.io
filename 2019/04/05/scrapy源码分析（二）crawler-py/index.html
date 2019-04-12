@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="scrapy,scrapy 源码,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="接上篇，当执行scrapy crawl xxx命令时: 最终会执行CrawlerProcess实例的crawl()和start()方法。 crawl命令scrapy.commands/crawl.py1234567def run(self, args, opts):    # ... 略 ...    self.crawler_process.crawl(spname, **opts.spargs">
+<meta name="keywords" content="scrapy,scrapy 源码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="scrapy源码分析（二）crawler.py">
+<meta property="og:url" content="http://yoursite.com/2019/04/05/scrapy源码分析（二）crawler-py/index.html">
+<meta property="og:site_name" content="Misstime">
+<meta property="og:description" content="接上篇，当执行scrapy crawl xxx命令时: 最终会执行CrawlerProcess实例的crawl()和start()方法。 crawl命令scrapy.commands/crawl.py1234567def run(self, args, opts):    # ... 略 ...    self.crawler_process.crawl(spname, **opts.spargs">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-04-06T05:47:11.414Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="scrapy源码分析（二）crawler.py">
+<meta name="twitter:description" content="接上篇，当执行scrapy crawl xxx命令时: 最终会执行CrawlerProcess实例的crawl()和start()方法。 crawl命令scrapy.commands/crawl.py1234567def run(self, args, opts):    # ... 略 ...    self.crawler_process.crawl(spname, **opts.spargs">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/04/05/scrapy源码分析（二）crawler-py/">
+
+
+
+
+
+  <title>scrapy源码分析（二）crawler.py | Misstime</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Misstime</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-首页">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-分类">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-标签">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-归档">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/05/scrapy源码分析（二）crawler-py/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Stephen">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Misstime">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">scrapy源码分析（二）crawler.py</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-05T11:53:02+08:00">
+                2019-04-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/scrapy-源码/" itemprop="url" rel="index">
+                    <span itemprop="name">scrapy 源码</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>接上篇，当执行<code>scrapy crawl xxx</code>命令时:</p>
+<p>最终会执行CrawlerProcess实例的crawl()和start()方法。</p>
+<figure class="highlight python"><figcaption><span>crawl命令</span><a href="https://github.com/scrapy/scrapy/blob/master/scrapy/commands/crawl.py" target="_blank" rel="noopener">scrapy.commands/crawl.py</a></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">run</span><span class="params">(self, args, opts)</span>:</span></span><br><span class="line">    <span class="comment"># ... 略 ...</span></span><br><span class="line"></span><br><span class="line">    self.crawler_process.crawl(spname, **opts.spargs)</span><br><span class="line">    self.crawler_process.start()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># ... 略 ...</span></span><br></pre></td></tr></table></figure>
+<p>CrawlerProcess类定义于scrapy.crawler.py模块中，scrapy.crawl.py模块主要含三个类：</p>
+<ul>
+<li>Crawler</li>
+<li>CrawlerProcess(CrawlerRunner)</li>
+<li>CrawlerRunner</li>
+</ul>
+<p>Crawler类用于创建抓取任务（通过蜘蛛名或已存在的Crawler实例构造）。</p>
+<p>CrawlerRunner是CrawlerProcess父类。</p>
+<p>CrawlerProcess是抓取主进程，通过Crawler类创建抓取任务（默认只有一个spider抓取任务，也可以<a href="https://scrapy-chs.readthedocs.io/zh_CN/stable/topics/practices.html#spider" target="_blank" rel="noopener">同时运行多个spider</a>），然后调用crawl()注册任务，最终调用start()开启reactor循环。</p>
+<a id="more"></a>
+<hr>
+<h2 id="CrawlerProcess-构造函数"><a href="#CrawlerProcess-构造函数" class="headerlink" title="CrawlerProcess 构造函数"></a>CrawlerProcess 构造函数</h2><p>CrawlerProcess继承自CrawlerRunner，先看它们的构造函数:</p>
+<figure class="highlight python"><figcaption><span>CrawlerRunner</span><a href="https://github.com/scrapy/scrapy/blob/master/scrapy/crawler.py" target="_blank" rel="noopener">scrapy.crawler.py</a></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, settings=None)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> isinstance(settings, dict) <span class="keyword">or</span> settings <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        settings = Settings(settings)</span><br><span class="line">    self.settings = settings</span><br><span class="line">    self.spider_loader = _get_spider_loader(settings)</span><br><span class="line">    self._crawlers = set()</span><br><span class="line">    self._active = set()</span><br><span class="line">    self.bootstrap_failed = <span class="literal">False</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><figcaption><span>CrawlerProcess</span><a href="https://github.com/scrapy/scrapy/blob/master/scrapy/crawler.py" target="_blank" rel="noopener">scrapy.crawler.py</a></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, settings=None, install_root_handler=True)</span>:</span></span><br><span class="line">    super(CrawlerProcess, self).__init__(settings)</span><br><span class="line">    install_shutdown_handlers(self._signal_shutdown)    <span class="comment"># 注册关闭句柄，如ctrl+c</span></span><br><span class="line">    configure_logging(self.settings, install_root_handler)  <span class="comment"># 配置logging</span></span><br><span class="line">    log_scrapy_info(self.settings)  <span class="comment"># 打印当前scrapy概况</span></span><br></pre></td></tr></table></figure>
+<p>Settings()是可以接受一个已存在的settings对象作为参数进行实例化的。</p>
+<p>spider_loader会加载项目内所有spider类，并进行名称重复检查。scrapy.spiderloader.py-SpiderLoader提供系列方法供外部调用，如：load(spider_name)</p>
+<p>_crawlers保存所有的爬虫任务，每个任务是一个实例化的Crawler对象（通过蜘蛛名或已存在的Crawler实例化），默认情况下只会存在一个spider的抓取任务，但也可以通过脚本同时运行多个spdier：<a href="https://scrapy-chs.readthedocs.io/zh_CN/stable/topics/practices.html#spider" target="_blank" rel="noopener">同一进程运行多个spider</a></p>
+<p>_active保存所有Crawler实例的crawl()方法，Crawler.crawl()方法被@defer.inlineCallbacks装饰后返回一个Deferred。</p>
+<hr>
+<h2 id="Crawler-构造函数"><a href="#Crawler-构造函数" class="headerlink" title="Crawler 构造函数"></a>Crawler 构造函数</h2><figure class="highlight python"><figcaption><span>Crawler</span><a href="https://github.com/scrapy/scrapy/blob/master/scrapy/crawler.py" target="_blank" rel="noopener">scrapy.crawler.py</a></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, spidercls, settings=None)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> isinstance(spidercls, Spider):</span><br><span class="line">        <span class="keyword">raise</span> ValueError(</span><br><span class="line">            <span class="string">'The spidercls argument must be a class, not an object'</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> isinstance(settings, dict) <span class="keyword">or</span> settings <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        settings = Settings(settings)</span><br><span class="line"></span><br><span class="line">    self.spidercls = spidercls</span><br><span class="line">    self.settings = settings.copy()</span><br><span class="line">    self.spidercls.update_settings(self.settings)</span><br><span class="line"></span><br><span class="line">    d = dict(overridden_settings(self.settings))</span><br><span class="line">    logger.info(<span class="string">"Overridden settings: %(settings)r"</span>, &#123;<span class="string">'settings'</span>: d&#125;)</span><br><span class="line"></span><br><span class="line">    self.signals = SignalManager(self)</span><br><span class="line">    self.stats = load_object(self.settings[<span class="string">'STATS_CLASS'</span>])(self)</span><br><span class="line"></span><br><span class="line">    handler = LogCounterHandler(self, level=self.settings.get(<span class="string">'LOG_LEVEL'</span>))</span><br><span class="line">    logging.root.addHandler(handler)</span><br><span class="line">    <span class="keyword">if</span> get_scrapy_root_handler() <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="comment"># scrapy root handler already installed: update it with new settings</span></span><br><span class="line">        install_scrapy_root_handler(self.settings)</span><br><span class="line">    <span class="comment"># lambda is assigned to Crawler attribute because this way it is not</span></span><br><span class="line">    <span class="comment"># garbage collected after leaving __init__ scope</span></span><br><span class="line">    self.__remove_handler = <span class="keyword">lambda</span>: logging.root.removeHandler(handler)</span><br><span class="line">    self.signals.connect(self.__remove_handler, signals.engine_stopped)</span><br><span class="line"></span><br><span class="line">    lf_cls = load_object(self.settings[<span class="string">'LOG_FORMATTER'</span>])</span><br><span class="line">    self.logformatter = lf_cls.from_crawler(self)</span><br><span class="line">    self.extensions = ExtensionManager.from_crawler(self)</span><br><span class="line"></span><br><span class="line">    self.settings.freeze()</span><br><span class="line">    self.crawling = <span class="literal">False</span></span><br><span class="line">    self.spider = <span class="literal">None</span></span><br><span class="line">    self.engine = <span class="literal">None</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>为抓取任务初始化了系列属性：spidercls、settings、signals、stats、logformatter、extensions</li>
+<li>并冻结了settings设置</li>
+<li>其中spider、engine属性仅设置为None，会在crawl()方法中具体实例化</li>
+</ul>
+<hr>
+<h2 id="CrawlerProcess-crawl"><a href="#CrawlerProcess-crawl" class="headerlink" title="CrawlerProcess.crawl()"></a>CrawlerProcess.crawl()</h2><ul>
+<li>首先，创建Crawler实例（通过传入蜘蛛名或已存在的Crawler初始化）</li>
+<li>将新创建的Crawler及Crawler.crawl()分别添加进self.crawlers、self._active。</li>
+<li>为Crawler.crawl()添加回调<code>_done</code>，当前抓取任务完毕后从self.crawlers、self._active中删除上一步所做的添加。</li>
+<li>最终返回的是Crawler.crawl()这个Deferred。</li>
+</ul>
+<p>crawl()回调链是被立即激活的(@defer.inlineCallbacks性质如此)，随着函数一步步深入的执行，最终阻塞并等待内层Deferred的激活（这些Deferred使用类似reactor.callLater()之类的方法注册），reactor.run()执行后激活等待中的Deferred，调度并开始抓取/处理数据。<br>所以：在crawl()执行中，scrapy并没有开始抓取数据，只是做了系列的初始化动作。</p>
+<h3 id="Crawler-crawl"><a href="#Crawler-crawl" class="headerlink" title="Crawler.crawl()"></a>Crawler.crawl()</h3><figure class="highlight python"><figcaption><span>Crawler.crawl()</span><a href="https://github.com/scrapy/scrapy/blob/master/scrapy/crawler.py" target="_blank" rel="noopener">scrapy.crawler.py</a></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@defer.inlineCallbacks</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">crawl</span><span class="params">(self, *args, **kwargs)</span>:</span></span><br><span class="line">    <span class="comment"># ... omit ...</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        self.spider = self._create_spider(*args, **kwargs)</span><br><span class="line">        self.engine = self._create_engine()</span><br><span class="line">        start_requests = iter(self.spider.start_requests())</span><br><span class="line">        <span class="keyword">yield</span> self.engine.open_spider(self.spider, start_requests)</span><br><span class="line">        <span class="keyword">yield</span> defer.maybeDeferred(self.engine.start)</span><br><span class="line">    <span class="keyword">except</span> Exception:</span><br><span class="line">        <span class="comment"># ... omit ...</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>初始当前化抓取任务的spider、engine、start_requests</li>
+<li>yield self.engine.open_spider(self.spider, start_requests)</li>
+<li>yield defer.maybeDeferred(self.engine.start)</li>
+</ul>
+<hr>
+<h2 id="CrawlerProcess-start"><a href="#CrawlerProcess-start" class="headerlink" title="CrawlerProcess.start()"></a>CrawlerProcess.start()</h2><p>注册系列reactor相关配置，调用reactor.run()开始事件循环。</p>
+<figure class="highlight python"><figcaption><span>CrawlerProcess.start()</span><a href="https://github.com/scrapy/scrapy/blob/master/scrapy/crawler.py" target="_blank" rel="noopener">scrapy.crawler.py</a></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">start</span><span class="params">(self, stop_after_crawl=True)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> stop_after_crawl:</span><br><span class="line">        d = self.join()</span><br><span class="line">        <span class="comment"># Don't start the reactor if the deferreds are already fired</span></span><br><span class="line">        <span class="keyword">if</span> d.called:</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        d.addBoth(self._stop_reactor)</span><br><span class="line"></span><br><span class="line">    reactor.installResolver(self._get_dns_resolver())</span><br><span class="line">    tp = reactor.getThreadPool()</span><br><span class="line">    tp.adjustPoolsize(maxthreads=self.settings.getint(<span class="string">'REACTOR_THREADPOOL_MAXSIZE'</span>))</span><br><span class="line">    reactor.addSystemEventTrigger(<span class="string">'before'</span>, <span class="string">'shutdown'</span>, self.stop)</span><br><span class="line">    reactor.run(installSignalHandlers=<span class="literal">False</span>)  <span class="comment"># blocking call</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>通过join()方法返回一个由self._active初始化的DeferredList，即：包含的是一个个抓取任务（Crawler.crawl()）</li>
+<li>为DeferredList添加关闭reactor的回调</li>
+<li>配置dns缓存、线程池、系统事件触发器（没有了解过这几个API）</li>
+<li>reactor.run()</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/scrapy/" rel="tag"># scrapy</a>
+          
+            <a href="/tags/scrapy-源码/" rel="tag"># scrapy 源码</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/04/scrapy源码分析（一）命令入口/" rel="next" title="scrapy源码分析（一）命令入口">
+                <i class="fa fa-chevron-left"></i> scrapy源码分析（一）命令入口
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/04/06/scrapy源码分析（三）核心-engine/" rel="prev" title="scrapy源码分析（三）核心-engine">
+                scrapy源码分析（三）核心-engine <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Stephen</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/misstime" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:734487946@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#CrawlerProcess-构造函数"><span class="nav-number">1.</span> <span class="nav-text">CrawlerProcess 构造函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Crawler-构造函数"><span class="nav-number">2.</span> <span class="nav-text">Crawler 构造函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CrawlerProcess-crawl"><span class="nav-number">3.</span> <span class="nav-text">CrawlerProcess.crawl()</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Crawler-crawl"><span class="nav-number">3.1.</span> <span class="nav-text">Crawler.crawl()</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CrawlerProcess-start"><span class="nav-number">4.</span> <span class="nav-text">CrawlerProcess.start()</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Stephen</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

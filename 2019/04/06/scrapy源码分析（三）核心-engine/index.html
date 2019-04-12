@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="hexo,">
+  <meta name="keywords" content="scrapy,scrapy 源码,">
 
 
 
@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub.">
-<meta name="keywords" content="hexo">
+<meta name="description" content="接上篇，Crawler.crawl() - scrapy.crawler.py方法最终调用了ExecutionEngine的open_spider和start方法。 scrapy.engine.py主要包含两个类：  ExecutionEngine Slot">
+<meta name="keywords" content="scrapy,scrapy 源码">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Hello World">
-<meta property="og:url" content="http://yoursite.com/2019/03/27/hello-world/index.html">
+<meta property="og:title" content="scrapy源码分析（三）核心-engine">
+<meta property="og:url" content="http://yoursite.com/2019/04/06/scrapy源码分析（三）核心-engine/index.html">
 <meta property="og:site_name" content="Misstime">
-<meta property="og:description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub.">
+<meta property="og:description" content="接上篇，Crawler.crawl() - scrapy.crawler.py方法最终调用了ExecutionEngine的open_spider和start方法。 scrapy.engine.py主要包含两个类：  ExecutionEngine Slot">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-03-26T23:48:40.222Z">
+<meta property="og:updated_time" content="2019-04-06T10:19:59.416Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hello World">
-<meta name="twitter:description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub.">
+<meta name="twitter:title" content="scrapy源码分析（三）核心-engine">
+<meta name="twitter:description" content="接上篇，Crawler.crawl() - scrapy.crawler.py方法最终调用了ExecutionEngine的open_spider和start方法。 scrapy.engine.py主要包含两个类：  ExecutionEngine Slot">
 
 
 
@@ -120,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2019/03/27/hello-world/">
+  <link rel="canonical" href="http://yoursite.com/2019/04/06/scrapy源码分析（三）核心-engine/">
 
 
 
 
 
-  <title>Hello World | Misstime</title>
+  <title>scrapy源码分析（三）核心-engine | Misstime</title>
   
 
 
@@ -253,7 +253,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/hello-world/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/06/scrapy源码分析（三）核心-engine/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Stephen">
@@ -270,7 +270,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Hello World</h1>
+          <h1 class="post-title" itemprop="name headline">scrapy源码分析（三）核心-engine</h1>
         
 
         <div class="post-meta">
@@ -282,8 +282,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T07:48:40+08:00">
-                2019-03-27
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-06T11:49:14+08:00">
+                2019-04-06
               </time>
             
 
@@ -305,8 +305,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/杂/" itemprop="url" rel="index">
-                    <span itemprop="name">杂</span>
+                  <a href="/categories/scrapy-源码/" itemprop="url" rel="index">
+                    <span itemprop="name">scrapy 源码</span>
                   </a>
                 </span>
 
@@ -342,16 +342,32 @@
       
 
       
-        <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+        <p>接上篇，<code>Crawler.crawl() - scrapy.crawler.py</code>方法最终调用了ExecutionEngine的open_spider和start方法。</p>
+<p><code>scrapy.engine.py</code>主要包含两个类：</p>
+<ul>
+<li>ExecutionEngine</li>
+<li>Slot</li>
+</ul>
 <a id="more"></a>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+<hr>
+<h2 id="ExecutionEngine-构造函数"><a href="#ExecutionEngine-构造函数" class="headerlink" title="ExecutionEngine 构造函数"></a>ExecutionEngine 构造函数</h2><p><code>__init__() - ExecutionEngine</code>：</p>
+<figure class="highlight python"><figcaption><span>ExecutionEngine.__init__()</span><a href="https://github.com/scrapy/scrapy/blob/master/scrapy/engine.py" target="_blank" rel="noopener">scrapy.engine.py</a></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ExecutionEngine</span><span class="params">(object)</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, crawler, spider_closed_callback)</span>:</span></span><br><span class="line">        self.crawler = crawler</span><br><span class="line">        self.settings = crawler.settings</span><br><span class="line">        self.signals = crawler.signals</span><br><span class="line">        self.logformatter = crawler.logformatter</span><br><span class="line">        self.slot = <span class="literal">None</span></span><br><span class="line">        self.spider = <span class="literal">None</span></span><br><span class="line">        self.running = <span class="literal">False</span></span><br><span class="line">        self.paused = <span class="literal">False</span></span><br><span class="line">        self.scheduler_cls = load_object(self.settings[<span class="string">'SCHEDULER'</span>])</span><br><span class="line">        downloader_cls = load_object(self.settings[<span class="string">'DOWNLOADER'</span>])</span><br><span class="line">        self.downloader = downloader_cls(crawler)</span><br><span class="line">        self.scraper = Scraper(crawler)</span><br><span class="line">        self._spider_closed_callback = spider_closed_callback</span><br></pre></td></tr></table></figure>
+<p>构造函数初始化了系列属性：crawler、settings、signals、logformatter、downloader、scraper、_spider_closed_callback<br>其中：<br>spider、slot都暂设为None<br>scheduler调度器类仅是引入而未实例化<br>_spider_closed_callback是一个匿名函数<code>lambda _: self.stop()</code></p>
+<hr>
+<h2 id="open-spider"><a href="#open-spider" class="headerlink" title="open_spider()"></a>open_spider()</h2><p><code>open_spider() - ExecutionEngine</code>：</p>
+<figure class="highlight python"><figcaption><span>ExecutionEngine.open_spider()</span><a href="https://github.com/scrapy/scrapy/blob/master/scrapy/engine.py" target="_blank" rel="noopener">scrapy.engine.py</a></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@defer.inlineCallbacks</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">open_spider</span><span class="params">(self, spider, start_requests=<span class="params">()</span>, close_if_idle=True)</span>:</span></span><br><span class="line">    <span class="keyword">assert</span> self.has_capacity(), <span class="string">"No free spider slot when opening %r"</span> % \</span><br><span class="line">        spider.name</span><br><span class="line">    logger.info(<span class="string">"Spider opened"</span>, extra=&#123;<span class="string">'spider'</span>: spider&#125;)</span><br><span class="line">    nextcall = CallLaterOnce(self._next_request, spider)</span><br><span class="line">    scheduler = self.scheduler_cls.from_crawler(self.crawler)</span><br><span class="line">    start_requests = <span class="keyword">yield</span> self.scraper.spidermw.process_start_requests(start_requests, spider)</span><br><span class="line">    slot = Slot(start_requests, close_if_idle, nextcall, scheduler)</span><br><span class="line">    self.slot = slot</span><br><span class="line">    self.spider = spider</span><br><span class="line">    <span class="keyword">yield</span> scheduler.open(spider)</span><br><span class="line">    <span class="keyword">yield</span> self.scraper.open_spider(spider)</span><br><span class="line">    self.crawler.stats.open_spider(spider)</span><br><span class="line">    <span class="keyword">yield</span> self.signals.send_catch_log_deferred(signals.spider_opened, spider=spider)</span><br><span class="line">    slot.nextcall.schedule()</span><br><span class="line">    slot.heartbeat.start(<span class="number">5</span>)</span><br></pre></td></tr></table></figure>
+<p>open_spider()顾名思义，使用ExecutionEngine执行引擎打开蜘蛛spider，执行各个组件的初始化工作，为后续的抓取做准备。</p>
+<ul>
+<li>实例化Slot<ul>
+<li>生成nextcall对象，其schedule()方法对回调<code>_next_request</code>执行<code>reactor.callLater(delay, self)</code>激活</li>
+<li>实例化调度器scheduler</li>
+<li>处理start_requests</li>
+<li>通过以上三个参数实例化Slot，并赋值为引擎属性</li>
+</ul>
+</li>
+<li>。。。</li>
+</ul>
+<p>（未完待续）</p>
 
       
     </div>
@@ -369,7 +385,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/hexo/" rel="tag"># hexo</a>
+            <a href="/tags/scrapy/" rel="tag"># scrapy</a>
+          
+            <a href="/tags/scrapy-源码/" rel="tag"># scrapy 源码</a>
           
         </div>
       
@@ -382,8 +400,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/03/23/twisted笔记（二）：reactor/" rel="next" title="twisted笔记（二）：reactor">
-                <i class="fa fa-chevron-left"></i> twisted笔记（二）：reactor
+              <a href="/2019/04/05/scrapy源码分析（二）crawler-py/" rel="next" title="scrapy源码分析（二）crawler.py">
+                <i class="fa fa-chevron-left"></i> scrapy源码分析（二）crawler.py
               </a>
             
           </div>
@@ -391,10 +409,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2019/03/29/twisted笔记（三）：为何使用Deferred/" rel="prev" title="twisted笔记（三）：为何使用Deferred">
-                twisted笔记（三）：为何使用Deferred <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -471,7 +485,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-count">9</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -482,7 +496,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-count">3</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -493,7 +507,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-count">4</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -542,7 +556,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Quick-Start"><span class="nav-number">1.</span> <span class="nav-text">Quick Start</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-a-new-post"><span class="nav-number">1.1.</span> <span class="nav-text">Create a new post</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Run-server"><span class="nav-number">1.2.</span> <span class="nav-text">Run server</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Generate-static-files"><span class="nav-number">1.3.</span> <span class="nav-text">Generate static files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deploy-to-remote-sites"><span class="nav-number">1.4.</span> <span class="nav-text">Deploy to remote sites</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#ExecutionEngine-构造函数"><span class="nav-number">1.</span> <span class="nav-text">ExecutionEngine 构造函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#open-spider"><span class="nav-number">2.</span> <span class="nav-text">open_spider()</span></a></li></ol></div>
             
 
           </div>

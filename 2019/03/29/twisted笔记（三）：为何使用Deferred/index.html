@@ -87,7 +87,7 @@
 <meta property="og:site_name" content="Misstime">
 <meta property="og:description" content="deferred adj.延期的 v.推迟  顾名思义，Deferred代表一个延迟对象，twisted使用它管理回调函数链。 同步模型编程和同步模型编程有着很大的区别。此处只做一些简单阐述，详见：twisted教程（译）">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-03-30T13:51:25.084Z">
+<meta property="og:updated_time" content="2019-03-31T01:51:49.548Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="twisted笔记（三）：为何使用Deferred">
 <meta name="twitter:description" content="deferred adj.延期的 v.推迟  顾名思义，Deferred代表一个延迟对象，twisted使用它管理回调函数链。 同步模型编程和同步模型编程有着很大的区别。此处只做一些简单阐述，详见：twisted教程（译）">
@@ -379,11 +379,15 @@
 <p>期间阻塞的时间减少了一般，预计耗时30+30=60s+。</p>
 <p>结果：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">failed: https://www.google.com/?id=1</span><br><span class="line">failed: https://www.google.com/?id=1</span><br><span class="line">failed: https://www.google.com/?id=2</span><br><span class="line">failed: https://www.google.com/?id=2</span><br><span class="line"><span class="number">60.06350612640381</span></span><br></pre></td></tr></table></figure>
-<h2 id="一些结论"><a href="#一些结论" class="headerlink" title="一些结论"></a>一些结论</h2><p>在twisted编程中：</p>
-<p>如果使用同步代码，无法对具有依赖顺序的每个子任务轮询调用，只有第一步执行完后才能执行第二步，结果造成了<strong>阻塞的叠加</strong>。</p>
-<p>使用异步代码时，我们的回调函数中会调用其他异步函数（twisted的API接口或自定义的Deferred），在回调函数中<strong>立即返回</strong>一个子Deferred。在回调A-任务1产生阻塞期间去执行其他回调的某个子任务，避免了阻塞的叠加。以此实现异步模型。</p>
-<p>一个Deferred对象代表一串可以异步执行的任务链。如果不使用Deferred，同步代码中永远也无法立即返回，转而执行其他动作。这就是为何引入Deferred的原因。</p>
+<h2 id="一些结论"><a href="#一些结论" class="headerlink" title="一些结论"></a>一些结论</h2><p>（个人理解，可能有误）</p>
+<p>在twisted reactor循环中：</p>
+<p>在同步的代码里，回调函数无法调用其他回调，因为Python语法无法表达一个期望的返回值/占位符来代替事件的结果。这使得reactor循环变得多此一举，程序的执行仍然是一件接着一件的顺序执行。</p>
+<p>在异步的代码里，回调函数中会回调其他回调函数（twisted的API接口或自定义的Deferred），在外层回调函数中立即返回一个子Deferred。在回调A-任务1产生阻塞期间去执行其他回调的某个子任务，避免了阻塞的叠加。以此实现异步模型。</p>
+<p>故：<strong>为何使用Deferred？</strong></p>
+<p>Deferred解决了同步代码中无法使用Python语法表达一个期望值/占位符的问题。reactor+Deferred实现了异步模型，二者缺一不可。</p>
+<p>另：</p>
 <p>一个Deferred链中的每个回调函数都是顺序执行的，相互间不具有异步性。多个Deferred中回调函数之间才具备异步性。</p>
+<p>twisted提供了丰富的异步API接口，使得阻塞式的函数变为异步函数，如：访问数据库（twisted.enterprise.adbapi）、访问web（twisted.web.client）等。</p>
 
       
     </div>
@@ -414,8 +418,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/03/27/hello-world/" rel="next" title="Hello World">
-                <i class="fa fa-chevron-left"></i> Hello World
+              <a href="/2019/03/23/twisted笔记（二）：reactor/" rel="next" title="twisted笔记（二）：reactor">
+                <i class="fa fa-chevron-left"></i> twisted笔记（二）：reactor
               </a>
             
           </div>
@@ -423,6 +427,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/03/30/twisted笔记（四）：Deferred/" rel="prev" title="twisted笔记（四）：Deferred">
+                twisted笔记（四）：Deferred <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -499,7 +507,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-count">9</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -510,7 +518,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-count">3</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -521,7 +529,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-count">4</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

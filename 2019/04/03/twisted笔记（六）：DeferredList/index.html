@@ -79,22 +79,18 @@
 
 
 
-<meta name="description" content="以处理三个相互独立的任务为例，常见程序模型：  单线程同步模型 多线程/多进程模型 异步模型">
+<meta name="description" content="DeferredList 比较简单明了：  DeferredList 类使我们可以将一个 defered 对象列表视为一个 defered 对象.通过这种方法我们启动一族异步操作并且在它们全部完成后获得通知(无论它们成功或者失败)Deferreds 全貌   DeferredList 是以一个 deferred 对象列表创建的 DeferredList 本身是一个 deferred，它返回的结果是">
 <meta name="keywords" content="twisted">
 <meta property="og:type" content="article">
-<meta property="og:title" content="twisted笔记（一）：异步编程">
-<meta property="og:url" content="http://yoursite.com/2019/03/23/twisted笔记（一）：异步编程/index.html">
+<meta property="og:title" content="twisted笔记（六）：DeferredList">
+<meta property="og:url" content="http://yoursite.com/2019/04/03/twisted笔记（六）：DeferredList/index.html">
 <meta property="og:site_name" content="Misstime">
-<meta property="og:description" content="以处理三个相互独立的任务为例，常见程序模型：  单线程同步模型 多线程/多进程模型 异步模型">
+<meta property="og:description" content="DeferredList 比较简单明了：  DeferredList 类使我们可以将一个 defered 对象列表视为一个 defered 对象.通过这种方法我们启动一族异步操作并且在它们全部完成后获得通知(无论它们成功或者失败)Deferreds 全貌   DeferredList 是以一个 deferred 对象列表创建的 DeferredList 本身是一个 deferred，它返回的结果是">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://yoursite.com/images/twisted-notes/p01_sync.png">
-<meta property="og:image" content="http://yoursite.com/images/twisted-notes/p01_threaded.png">
-<meta property="og:image" content="http://yoursite.com/images/twisted-notes/p01_async.png">
-<meta property="og:updated_time" content="2019-03-26T23:48:40.222Z">
+<meta property="og:updated_time" content="2019-04-03T03:11:31.579Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="twisted笔记（一）：异步编程">
-<meta name="twitter:description" content="以处理三个相互独立的任务为例，常见程序模型：  单线程同步模型 多线程/多进程模型 异步模型">
-<meta name="twitter:image" content="http://yoursite.com/images/twisted-notes/p01_sync.png">
+<meta name="twitter:title" content="twisted笔记（六）：DeferredList">
+<meta name="twitter:description" content="DeferredList 比较简单明了：  DeferredList 类使我们可以将一个 defered 对象列表视为一个 defered 对象.通过这种方法我们启动一族异步操作并且在它们全部完成后获得通知(无论它们成功或者失败)Deferreds 全貌   DeferredList 是以一个 deferred 对象列表创建的 DeferredList 本身是一个 deferred，它返回的结果是">
 
 
 
@@ -124,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2019/03/23/twisted笔记（一）：异步编程/">
+  <link rel="canonical" href="http://yoursite.com/2019/04/03/twisted笔记（六）：DeferredList/">
 
 
 
 
 
-  <title>twisted笔记（一）：异步编程 | Misstime</title>
+  <title>twisted笔记（六）：DeferredList | Misstime</title>
   
 
 
@@ -257,7 +253,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/23/twisted笔记（一）：异步编程/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/03/twisted笔记（六）：DeferredList/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Stephen">
@@ -274,7 +270,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">twisted笔记（一）：异步编程</h1>
+          <h1 class="post-title" itemprop="name headline">twisted笔记（六）：DeferredList</h1>
         
 
         <div class="post-meta">
@@ -286,8 +282,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-23T15:31:10+08:00">
-                2019-03-23
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-03T10:01:57+08:00">
+                2019-04-03
               </time>
             
 
@@ -346,30 +342,23 @@
       
 
       
-        <p>以处理三个相互独立的任务为例，常见程序模型：</p>
+        <p>DeferredList 比较简单明了：</p>
+<blockquote>
+<p>DeferredList 类使我们可以将一个 defered 对象列表视为一个 defered 对象.通过这种方法我们启动一族异步操作并且在它们全部完成后获得通知(无论它们成功或者失败)<br><a href="http://wiki.jikexueyuan.com/project/twisted-intro/p18.html" target="_blank" rel="noopener">Deferreds 全貌</a></p>
+</blockquote>
 <ul>
-<li>单线程同步模型</li>
-<li>多线程/多进程模型</li>
-<li>异步模型</li>
+<li>DeferredList 是以一个 deferred 对象列表创建的</li>
+<li>DeferredList 本身是一个 deferred，它返回的结果是一个列表，长度与 deferred 列表相同并一一对应.</li>
+<li>当原始列表中所有 deferred 被激发后，DeferredList 将会被激发。（当然以空列表创建的DeferredList会被立即激发，因为没有Deferred需要等待）</li>
+<li>返回的列表元素有两种可能：deferred 成功返回是<code>(True,result)</code>,如果失败则为<code>(False,failure)</code></li>
+<li>DeferredList 不会失败,因为无论每个 deferred 的返回结果是什么都会被集总到结果列表中。</li>
 </ul>
 <a id="more"></a>
-<h2 id="单线程同步模型"><a href="#单线程同步模型" class="headerlink" title="单线程同步模型"></a>单线程同步模型</h2><ul>
-<li>同一时刻，只有一个任务在执行</li>
-<li>前一个任务结束后一个任务才能开始，按照事先规定的顺序执行。</li>
-</ul>
-<p><img src="/images/twisted-notes/p01_sync.png" alt></p>
-<h2 id="多线程-多进程模型"><a href="#多线程-多进程模型" class="headerlink" title="多线程/多进程模型"></a>多线程/多进程模型</h2><p>在操作系统的层面，多个任务同时执行。</p>
-<p>注：</p>
-<blockquote>
-<p>python 由于 GIL 锁的存在，在同一时间内，python解释器只能运行一个线程的代码，因此在即使在多核的情况下也只能发挥出单核的性能。</p>
-</blockquote>
-<p><img src="/images/twisted-notes/p01_threaded.png" alt></p>
-<h2 id="异步模型"><a href="#异步模型" class="headerlink" title="异步模型"></a>异步模型</h2><p>当一个任务出现阻塞时，会先让其他任务先执行。因此异步程序也被称为非阻塞程序。</p>
-<p><img src="/images/twisted-notes/p01_async.png" alt></p>
-<h2 id="多线程-vs-异步"><a href="#多线程-vs-异步" class="headerlink" title="多线程 vs 异步"></a>多线程 vs 异步</h2><ul>
-<li>多线程同时运行多个任务，比较复杂；异步同一时刻只能运行一个任务，更加简单。</li>
-<li>对任务控制权不同（@todo）</li>
-</ul>
+<h2 id="consumeErrors"><a href="#consumeErrors" class="headerlink" title="consumeErrors"></a>consumeErrors</h2><p>如果DeferredList中某个Deferred有未完全捕获的异步错误，在Deferred垃圾回收是会报”Unhandled error in Deferred”错误消息。<br>使用<code>consumeErrors</code>参数会为每个Deferred自动”消耗”掉这个错误并且取消警告信息（它将向每个 deferred 添加返回 None 的错误回调）。</p>
+<figure class="highlight python"><figcaption><span>use:python2.7</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> twisted.internet <span class="keyword">import</span> defer</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">got_results</span><span class="params">(res)</span>:</span></span><br><span class="line">    <span class="keyword">print</span> <span class="string">'We got:'</span>, res</span><br><span class="line"></span><br><span class="line">d1 = defer.Deferred()</span><br><span class="line">d2 = defer.Deferred()</span><br><span class="line">d = defer.DeferredList([d1, d2])</span><br><span class="line">d.addCallback(got_results)</span><br><span class="line"></span><br><span class="line"><span class="keyword">print</span> <span class="string">'Firing d1.'</span></span><br><span class="line">d1.callback(<span class="string">'d1 result'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">print</span> <span class="string">'Firing d2 with errback.'</span></span><br><span class="line">d2.errback(Exception(<span class="string">'d2 failure'</span>))</span><br></pre></td></tr></table></figure>
+<p>结果：</p>
+<figure class="highlight python"><figcaption><span>use:python2.7</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Firing d1.</span><br><span class="line">Firing d2 <span class="keyword">with</span> errback.</span><br><span class="line">We got: [(<span class="literal">True</span>, <span class="string">'d1 result'</span>), (<span class="literal">False</span>, &lt;twisted.python.failure.Failure exceptions.Exception: d2 failure&gt;)]</span><br><span class="line">Unhandled error <span class="keyword">in</span> Deferred:</span><br><span class="line"></span><br><span class="line">Traceback (most recent call last):</span><br><span class="line">Failure: exceptions.Exception: d2 failure</span><br></pre></td></tr></table></figure>
+<p>可以使用<code>d = defer.DeferredList([d1, d2], consumeErrors=True)</code>取消警告信息。</p>
 
       
     </div>
@@ -400,14 +389,18 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
+              <a href="/2019/03/31/twisted笔记（五）：inlineCallbacks/" rel="next" title="twisted笔记（五）：inlineCallbacks">
+                <i class="fa fa-chevron-left"></i> twisted笔记（五）：inlineCallbacks
+              </a>
+            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2019/03/23/twisted笔记（二）：reactor/" rel="prev" title="twisted笔记（二）：reactor">
-                twisted笔记（二）：reactor <i class="fa fa-chevron-right"></i>
+              <a href="/2019/04/04/scrapy源码分析（一）命令入口/" rel="prev" title="scrapy源码分析（一）命令入口">
+                scrapy源码分析（一）命令入口 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -556,7 +549,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#单线程同步模型"><span class="nav-number">1.</span> <span class="nav-text">单线程同步模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#多线程-多进程模型"><span class="nav-number">2.</span> <span class="nav-text">多线程/多进程模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#异步模型"><span class="nav-number">3.</span> <span class="nav-text">异步模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#多线程-vs-异步"><span class="nav-number">4.</span> <span class="nav-text">多线程 vs 异步</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#consumeErrors"><span class="nav-number">1.</span> <span class="nav-text">consumeErrors</span></a></li></ol></div>
             
 
           </div>
